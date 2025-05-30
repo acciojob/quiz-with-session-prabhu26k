@@ -7,7 +7,9 @@
 
 // Do not change code below this line
 // This code will just display the questions to the screen
-const questions = [
+
+      
+    const questions = [
   {
     question: "What is the capital of France?",
     choices: ["Paris", "London", "Berlin", "Madrid"],
@@ -35,15 +37,14 @@ const questions = [
   },
 ];
 
-// Render questions dynamically
-const questionsElement = document.getElementById("questions");
-
+// Render questions with saved answers
 function renderQuestions() {
+  const questionsElement = document.getElementById("questions");
+  const savedAnswers = JSON.parse(sessionStorage.getItem("progress")) || {};
+
   for (let i = 0; i < questions.length; i++) {
     const question = questions[i];
-
     const questionElement = document.createElement("div");
-
     const questionText = document.createTextNode(question.question);
     questionElement.appendChild(questionText);
 
@@ -55,10 +56,14 @@ function renderQuestions() {
       choiceElement.setAttribute("name", `question-${i}`);
       choiceElement.setAttribute("value", choice);
 
+      // Restore selection from sessionStorage
+      if (savedAnswers[`question-${i}`] === choice) {
+        choiceElement.checked = true;
+      }
+
       const choiceLabel = document.createElement("label");
       choiceLabel.appendChild(choiceElement);
       choiceLabel.appendChild(document.createTextNode(choice));
-
       questionElement.appendChild(choiceLabel);
     }
 
@@ -66,19 +71,27 @@ function renderQuestions() {
   }
 }
 
-// Calculate and display score
 document.getElementById("submit").addEventListener("click", function () {
   let score = 0;
+  const savedAnswers = {};
 
   for (let i = 0; i < questions.length; i++) {
     const selectedOption = document.querySelector(`input[name="question-${i}"]:checked`);
-    if (selectedOption && selectedOption.value === questions[i].answer) {
-      score++;
+    if (selectedOption) {
+      savedAnswers[`question-${i}`] = selectedOption.value;
+
+      if (selectedOption.value === questions[i].answer) {
+        score++;
+      }
     }
   }
+
+  // Save progress & score
+  sessionStorage.setItem("progress", JSON.stringify(savedAnswers));
+  localStorage.setItem("score", score);
 
   document.getElementById("score").innerText = `Your Score: ${score}`;
 });
 
-// Initial rendering
+// Load everything
 renderQuestions();
